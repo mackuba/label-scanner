@@ -37,3 +37,19 @@ h1 i {
 #found_labels {
   margin-top: 30px;
 }
+
+#github {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
+#github img {
+  width: 22px;
+  opacity: 0.4;
+}
+
+#github a:hover img {
+  opacity: 0.6;
+}
