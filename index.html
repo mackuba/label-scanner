@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'none';
+    script-src 'self' https://blue.mackuba.eu;
+    style-src 'self';
+    img-src 'self';
+    font-src 'self';
+    script-src-attr 'none';
+    style-src-attr 'none';
+    connect-src https://blue.mackuba.eu https://api.bsky.app;
+    base-uri 'none';
+    form-action 'self';">
+
+  <title>Label Scanner</title>
+  <link href="./fontawesome/fontawesome.min.css" rel="stylesheet">
+  <link href="./fontawesome/solid.min.css" rel="stylesheet">
+  <link href="./fontawesome/regular.min.css" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
+</head>
+<body>
+  <h1><i class="fa-solid fa-barcode"></i> Label Scanner</h1>
+
+  <form id="search" method="get">
+    Enter handle: <input type="text" placeholder="alf.bsky.team" name="handle">
+    <input type="submit" name="search" value="Search">
+  </form>
+
+  <p>
+    <output id="result"></output>
+  </p>
+
+  <div id="found_labels">
+  </div>
+
+  <!-- <div id="github">
+    <a href="https://github.com/mackuba/skythread" target="_blank">
+      <img src="icons/github.png">
+    </a>
+  </div> -->
+
+  <script src="https://blue.mackuba.eu/skythread/minisky.js"></script>
+  <script src="scanner.js"></script>
+</body>
+</html>
