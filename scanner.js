@@ -70,15 +70,6 @@ async function scanHandle(handle) {
     labels = labels.concat(profile.labels.filter(x => (x.src != userDID)));
   }
 
-  if (labels.length > 0) {
-    let sources = Array.from(new Set(labels.map(x => x.src)));
-
-    let labellerProfiles = await appView.getRequest('app.bsky.actor.getProfiles', { actors: sources });
-    for (let profile of labellerProfiles.profiles) {
-      labels.filter(x => (x.src == profile.did)).forEach(x => { x.labeller = profile });
-    }    
-  }
-
   return labels;
 }
 
@@ -97,12 +88,14 @@ function showLabels(labels) {
   }
 
   for (let label of labels) {
+    let labeller = labellers.find(x => (x.did == label.src));
+
     let p = document.createElement('p');
     p.innerText = `“${label.val}” from `;
 
     let a = document.createElement('a');
-    a.innerText = label.labeller.displayName;
-    a.href = `https://bsky.app/profile/${label.labeller.handle}`;
+    a.innerText = labeller.name;
+    a.href = `https://bsky.app/profile/${labeller.handle}`;
     p.append(a);
 
     foundLabels.appendChild(p);
