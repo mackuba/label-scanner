@@ -15,7 +15,7 @@ function initScanner() {
   });
 
   document.getElementById('search').addEventListener('submit', submitSearch);
-  document.getElementById('search').handle.addEventListener('focus', function() {
+  document.getElementById('search').query.addEventListener('focus', function() {
     setTimeout(() => { this.select() }, 10);
   });
 }
@@ -27,19 +27,32 @@ async function loadLabellers() {
 
 function submitSearch(event) {
   event.preventDefault();
-  let handle = this.handle.value;
+  let query = this.query.value;
 
-  if (handle.trim().length == 0) {
+  if (query.trim().length == 0) {
     return;
   }
 
-  this.handle.blur();
+  let doScan;
+
+  if (query.includes('://')) {
+    doScan = scanURL(query);
+  } else if (query.match(/^@?[\w\-]+(\.[\w\-]+)+$/)) {
+    query = query.replace(/^@/, '');
+    doScan = scanHandle(query);
+  } else {
+    resultField.innerText = 'Enter a user handle or a post URL.';
+    foundLabels.innerHTML = '';
+    return;
+  }
+
+  this.query.blur();
   this.search.disabled = true;
   resultField.innerText = 'Scanning labels...';
   foundLabels.innerHTML = '';
 
   labellersPromise.then(() => {
-    scanHandle(handle)
+    doScan
       .then((labels) => {
         showLabels(labels);
       })
@@ -67,11 +80,49 @@ async function scanHandle(handle) {
   return results.flatMap(x => x.labels).filter(x => (x.src != userDID));
 }
 
+async function scanURL(url) {
+  let atURI;
+
+  if (url.match(/^at:\/\/did:[^/]+\/app\.bsky\.feed\.post\/[\w]+$/)) {
+    atURI = url;
+  } else {
+    let match = url.match(/^https:\/\/bsky\.app\/profile\/([^/]+)\/post\/([\w]+)\/?$/);
+
+    if (match && match[1].includes('did:')) {
+      atURI = `at://${match[1]}/app.bsky.feed.post/${match[2]}`;
+    } else if (match) {
+      let json = await appView.getRequest('com.atproto.identity.resolveHandle', { handle: match[1] });
+      atURI = `at://${json.did}/app.bsky.feed.post/${match[2]}`;
+    } else {
+      throw 'Invalid URL';
+    }
+  }
+
+  let userDID = atURI.split('/')[2];
+  let batches = [];
+
+  for (let i = 0; i < labellers.length; i += 10) {
+    let slice = labellers.slice(i, i + 10);
+    batches.push(checkAtURIWithLabellers(atURI, slice));
+  }
+
+  let results = await Promise.all(batches);
+  return results.flatMap(x => x.labels).filter(x => (x.src != userDID));
+}
+
 async function checkProfileWithLabellers(handle, batch) {
   let labellersList = batch.map(x => x.did).join(',');
   let headers = { 'atproto-accept-labelers': labellersList };
 
   return appView.getRequest('app.bsky.actor.getProfile', { actor: handle }, { headers });
+}
+
+async function checkAtURIWithLabellers(uri, batch) {
+  let labellersList = batch.map(x => x.did).join(',');
+  let headers = { 'atproto-accept-labelers': labellersList };
+
+  let result = await appView.getRequest('app.bsky.feed.getPosts', { uris: uri }, { headers });
+  return result.posts[0];
 }
 
 function showLabels(labels) {
