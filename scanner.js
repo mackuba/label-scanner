@@ -64,13 +64,7 @@ async function scanHandle(handle) {
   }
 
   let results = await Promise.all(batches);
-  let labels = [];
-
-  for (let profile of results) {
-    labels = labels.concat(profile.labels.filter(x => (x.src != userDID)));
-  }
-
-  return labels;
+  return results.flatMap(x => x.labels).filter(x => (x.src != userDID));
 }
 
 async function checkProfileWithLabellers(handle, batch) {
