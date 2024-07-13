@@ -39,6 +39,10 @@ h1 i {
   margin-left: 3px;
 }
 
+#result .tags {
+  color: #f79a24;
+}
+
 #found_labels {
   margin-top: 30px;
 }

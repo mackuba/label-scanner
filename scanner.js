@@ -128,8 +128,13 @@ async function checkAtURIWithLabellers(uri, batch) {
 function showLabels(labels) {
   if (labels.length == 0) {
     resultField.innerText = '✅ No labels found';
+    return;
+  }
+
+  if (labels.length == 1) {
+    resultField.innerHTML = `<i class="tags fa-solid fa-tag"></i> 1 label found:`;
   } else {
-    resultField.innerText = `⚠️ ${labels.length} label${labels.length == 1 ? '' : 's'} found:`;
+    resultField.innerHTML = `<i class="tags fa-solid fa-tags"></i> ${labels.length} labels found:`;
   }
 
   for (let label of labels) {
