@@ -126,7 +126,7 @@ async function checkAtURIWithLabellers(uri, batch) {
 }
 
 function showLabels(labels) {
-  if (labels == 0) {
+  if (labels.length == 0) {
     resultField.innerText = '✅ No labels found';
   } else {
     resultField.innerText = `⚠️ ${labels.length} label${labels.length == 1 ? '' : 's'} found:`;
