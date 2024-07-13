@@ -139,7 +139,7 @@ function showLabels(labels) {
     p.innerText = `“${label.val}” from `;
 
     let a = document.createElement('a');
-    a.innerText = labeller.name;
+    a.innerText = labeller.name || labeller.handle;
     a.href = `https://bsky.app/profile/${labeller.handle}`;
     p.append(a);
 
