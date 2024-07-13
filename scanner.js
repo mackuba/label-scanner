@@ -14,10 +14,14 @@ function initScanner() {
     window.labellers = list;
   });
 
-  document.getElementById('search').addEventListener('submit', submitSearch);
-  document.getElementById('search').query.addEventListener('focus', function() {
+  let form = document.getElementById('search');
+
+  form.addEventListener('submit', submitSearch);
+  form.query.addEventListener('focus', function() {
     setTimeout(() => { this.select() }, 10);
   });
+
+  form.query.focus();
 }
 
 async function loadLabellers() {
