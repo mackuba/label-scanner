@@ -35,7 +35,7 @@ h1 i {
 }
 
 #result .loader {
-  --fa-animation-duration: 2s;
+  --fa-animation-duration: 1.2s;
   margin-left: 3px;
 }
 

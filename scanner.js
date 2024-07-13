@@ -48,7 +48,7 @@ function submitSearch(event) {
 
   this.query.blur();
   this.search.disabled = true;
-  resultField.innerHTML = 'Scanning labels... <i class="loader fa-solid fa-spinner fa-spin"></i>';
+  resultField.innerHTML = 'Scanning labels... <i class="loader fa-solid fa-spinner fa-spin fa-sm"></i>';
   foundLabels.innerHTML = '';
 
   labellersPromise.then(() => {
