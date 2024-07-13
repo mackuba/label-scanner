@@ -44,6 +44,8 @@ function submitSearch(event) {
   } else if (query.match(/^@?[\w\-]+(\.[\w\-]+)+$/)) {
     query = query.replace(/^@/, '');
     doScan = scanHandle(query);
+  } else if (query.match(/^did\:\w+\:/)) {
+    doScan = scanAccount(query);
   } else {
     resultField.innerText = 'Enter a user handle or a post URL.';
     foundLabels.innerHTML = '';
@@ -73,6 +75,10 @@ async function scanHandle(handle) {
   let json = await appView.getRequest('com.atproto.identity.resolveHandle', { handle });
   let userDID = json.did;
 
+  return await scanAccount(userDID);
+}
+
+async function scanAccount(userDID) {
   let batches = [];
 
   for (let i = 0; i < labellers.length; i += 10) {
