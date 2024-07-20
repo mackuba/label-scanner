@@ -25,7 +25,7 @@ function initScanner() {
 }
 
 async function loadLabellers() {
-  let json = await blue.getRequest('eu.mackuba.private.getLabellers');
+  let json = await blue.getRequest('blue.feeds.mod.getLabellers');
   return json.labellers;
 }
 
