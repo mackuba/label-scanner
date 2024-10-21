@@ -1,6 +1,24 @@
 document.addEventListener("DOMContentLoaded", function() {
   initScanner();
+
+  // if "#query=" was specified -- this will autofill & query that automatically.
+  submitHashParameter();
 });
+
+function submitHashParameter() {
+  if (window.location.hash.length > 0) {
+    // expected: "#query=hello.world" -> "query=hello.world"
+    const queryLikeString = window.location.hash.substr(1);
+    const parameters = new URLSearchParams(queryLikeString);
+    const queryParameter = parameters.get('query');
+    if (queryParameter !== null) {
+        let form = document.getElementById('search');
+        form.query.value = queryParameter;
+        // "click" the button to propagate a proper event to "submitSearch(...)".
+        form.search.click();
+    }
+  }
+}
 
 function initScanner() {
   window.resultField = document.getElementById('result');
