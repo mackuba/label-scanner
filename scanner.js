@@ -81,8 +81,8 @@ async function scanHandle(handle) {
 async function scanAccount(userDID) {
   let batches = [];
 
-  for (let i = 0; i < labellers.length; i += 10) {
-    let slice = labellers.slice(i, i + 10);
+  for (let i = 0; i < labellers.length; i += 20) {
+    let slice = labellers.slice(i, i + 20);
     batches.push(checkProfileWithLabellers(userDID, slice));
   }
 
