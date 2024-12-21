@@ -98,20 +98,20 @@ async function scanURL(url) {
   if (url.match(/^at:\/\/did:[^/]+\/app\.bsky\.feed\.post\/[\w]+$/)) {
     atURI = url;
   } else {
-    let match = url.match(/^https:\/\/bsky\.app\/profile\/([^/]+)\/?$/);
+    let match = url.match(/^https:\/\/(bsky\.app|main\.bsky\.dev)\/profile\/([^/]+)\/?$/);
 
-    if (match && match[1].startsWith('did:')) {
-      return await scanAccount(match[1]);
+    if (match && match[2].startsWith('did:')) {
+      return await scanAccount(match[2]);
     } else if (match) {
-      return await scanHandle(match[1]);
+      return await scanHandle(match[2]);
     } else {
-      let match = url.match(/^https:\/\/bsky\.app\/profile\/([^/]+)\/post\/([\w]+)\/?$/);
+      let match = url.match(/^https:\/\/(bsky\.app|main\.bsky\.dev)\/profile\/([^/]+)\/post\/([\w]+)\/?$/);
 
-      if (match && match[1].startsWith('did:')) {
-        atURI = `at://${match[1]}/app.bsky.feed.post/${match[2]}`;
+      if (match && match[2].startsWith('did:')) {
+        atURI = `at://${match[2]}/app.bsky.feed.post/${match[3]}`;
       } else if (match) {
-        let json = await appView.getRequest('com.atproto.identity.resolveHandle', { handle: match[1] });
-        atURI = `at://${json.did}/app.bsky.feed.post/${match[2]}`;
+        let json = await appView.getRequest('com.atproto.identity.resolveHandle', { handle: match[2] });
+        atURI = `at://${json.did}/app.bsky.feed.post/${match[3]}`;
       } else {
         throw 'Invalid URL';
       }
