@@ -1,3 +1,5 @@
+const batchSize = 20;
+
 document.addEventListener("DOMContentLoaded", function() {
   initScanner();
 });
@@ -81,8 +83,8 @@ async function scanHandle(handle) {
 async function scanAccount(userDID) {
   let batches = [];
 
-  for (let i = 0; i < labellers.length; i += 20) {
-    let slice = labellers.slice(i, i + 20);
+  for (let i = 0; i < labellers.length; i += batchSize) {
+    let slice = labellers.slice(i, i + batchSize);
     batches.push(checkProfileWithLabellers(userDID, slice));
   }
 
@@ -111,8 +113,8 @@ async function scanURL(url) {
   let userDID = atURI.split('/')[2];
   let batches = [];
 
-  for (let i = 0; i < labellers.length; i += 10) {
-    let slice = labellers.slice(i, i + 10);
+  for (let i = 0; i < labellers.length; i += batchSize) {
+    let slice = labellers.slice(i, i + batchSize);
     batches.push(checkAtURIWithLabellers(atURI, slice));
   }
 
