@@ -114,6 +114,8 @@ async function scanURL(string) {
       throw 'Unsupported URL';
     }
 
+    window.webClientHost = url.host;
+
     let match = url.pathname.match(/^\/profile\/([^/]+)\/?$/);
 
     if (match && match[1].startsWith('did:')) {
@@ -173,6 +175,8 @@ function showLabels(labels) {
     resultField.innerHTML = `<i class="tags fa-solid fa-tags"></i> ${labels.length} labels found:`;
   }
 
+  let host = window.webClientHost ?? 'bsky.app';
+
   for (let label of labels) {
     let labeller = labellers.find(x => (x.did == label.src));
 
@@ -181,7 +185,7 @@ function showLabels(labels) {
 
     let a = document.createElement('a');
     a.innerText = labeller.name || labeller.handle;
-    a.href = `https://bsky.app/profile/${labeller.handle}`;
+    a.href = `https://${host}/profile/${labeller.handle}`;
     p.append(a);
 
     foundLabels.appendChild(p);
