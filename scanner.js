@@ -92,26 +92,42 @@ async function scanAccount(userDID) {
   return results.flatMap(x => x.labels).filter(x => (x.src != userDID));
 }
 
-async function scanURL(url) {
+async function scanURL(string) {
   let atURI;
 
-  if (url.match(/^at:\/\/did:[^/]+\/app\.bsky\.feed\.post\/[\w]+$/)) {
-    atURI = url;
+  let acceptedHostnames = [
+    'bsky.app',
+    'main.bsky.dev',
+    'deer.social',
+  ];
+
+  if (string.match(/^at:\/\/did:[^/]+\/app\.bsky\.feed\.post\/[\w]+$/)) {
+    atURI = string;
   } else {
-    let match = url.match(/^https:\/\/(bsky\.app|main\.bsky\.dev)\/profile\/([^/]+)\/?$/);
+    let url = new URL(string);
 
-    if (match && match[2].startsWith('did:')) {
-      return await scanAccount(match[2]);
+    if (url.protocol != 'https:') {
+      throw 'URL must start with https://';
+    }
+
+    if (!acceptedHostnames.includes(url.host)) {
+      throw 'Unsupported URL';
+    }
+
+    let match = url.pathname.match(/^\/profile\/([^/]+)\/?$/);
+
+    if (match && match[1].startsWith('did:')) {
+      return await scanAccount(match[1]);
     } else if (match) {
-      return await scanHandle(match[2]);
+      return await scanHandle(match[1]);
     } else {
-      let match = url.match(/^https:\/\/(bsky\.app|main\.bsky\.dev)\/profile\/([^/]+)\/post\/([\w]+)\/?$/);
+      let match = url.pathname.match(/^\/profile\/([^/]+)\/post\/([\w]+)\/?$/);
 
-      if (match && match[2].startsWith('did:')) {
-        atURI = `at://${match[2]}/app.bsky.feed.post/${match[3]}`;
+      if (match && match[1].startsWith('did:')) {
+        atURI = `at://${match[1]}/app.bsky.feed.post/${match[2]}`;
       } else if (match) {
-        let json = await appView.getRequest('com.atproto.identity.resolveHandle', { handle: match[2] });
-        atURI = `at://${json.did}/app.bsky.feed.post/${match[3]}`;
+        let json = await appView.getRequest('com.atproto.identity.resolveHandle', { handle: match[1] });
+        atURI = `at://${json.did}/app.bsky.feed.post/${match[2]}`;
       } else {
         throw 'Invalid URL';
       }
