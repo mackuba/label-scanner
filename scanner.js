@@ -1,11 +1,18 @@
 const batchSize = 20;
 
+const acceptedHostnames = [
+  'bsky.app',
+  'main.bsky.dev',
+  'deer.social',
+];
+
 document.addEventListener("DOMContentLoaded", function() {
   initScanner();
 });
 
 function initScanner() {
   window.resultField = document.getElementById('result');
+  window.noteField = document.getElementById('note');
   window.foundLabels = document.getElementById('found_labels');
 
   window.blue = new Minisky('blue.mackuba.eu');
@@ -57,12 +64,18 @@ function submitSearch(event) {
   this.query.blur();
   this.search.disabled = true;
   resultField.innerHTML = 'Scanning labels... <i class="loader fa-solid fa-spinner fa-spin fa-sm"></i>';
+  noteField.style.display = 'none';
   foundLabels.innerHTML = '';
 
   labellersPromise.then(() => {
     doScan
-      .then((labels) => {
-        showLabels(labels);
+      .then((data) => {
+        showLabels(data.labels);
+
+        if (data.note) {
+          noteField.innerText = data.note;
+          noteField.style.display = 'block';
+        }
       })
       .catch((error) => {
         resultField.innerText = error;
@@ -89,17 +102,13 @@ async function scanAccount(userDID) {
   }
 
   let results = await Promise.all(batches);
-  return results.flatMap(x => x.labels).filter(x => (x.src != userDID));
+  let labels = results.flatMap(x => x.labels).filter(x => (x.src != userDID));
+
+  return { labels };
 }
 
 async function scanURL(string) {
-  let atURI;
-
-  let acceptedHostnames = [
-    'bsky.app',
-    'main.bsky.dev',
-    'deer.social',
-  ];
+  let atURI, note;
 
   if (string.match(/^at:\/\/did:[^/]+\/app\.bsky\.feed\.post\/[\w]+$/)) {
     atURI = string;
@@ -111,7 +120,7 @@ async function scanURL(string) {
     }
 
     if (!acceptedHostnames.includes(url.host)) {
-      throw 'Unsupported URL';
+      note = "Note: URL domain not recognized. Returned labels might be incorrect."
     }
 
     window.webClientHost = url.host;
@@ -119,9 +128,9 @@ async function scanURL(string) {
     let match = url.pathname.match(/^\/profile\/([^/]+)\/?$/);
 
     if (match && match[1].startsWith('did:')) {
-      return await scanAccount(match[1]);
+      return { note, ... await scanAccount(match[1]) };
     } else if (match) {
-      return await scanHandle(match[1]);
+      return { note, ... await scanHandle(match[1]) };
     } else {
       let match = url.pathname.match(/^\/profile\/([^/]+)\/post\/([\w]+)\/?$/);
 
@@ -150,7 +159,8 @@ async function scanURL(string) {
     throw '🚫 Post not found.';
   }
 
-  return results.flatMap(x => x.labels).filter(x => (x.src != userDID));
+  let labels = results.flatMap(x => x.labels).filter(x => (x.src != userDID));
+  return { labels, note };
 }
 
 async function checkProfileWithLabellers(handle, batch) {
