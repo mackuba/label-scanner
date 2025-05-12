@@ -145,6 +145,11 @@ async function scanURL(string) {
   }
 
   let results = await Promise.all(batches);
+
+  if (results.every(x => !x)) {
+    throw '🚫 Post not found.';
+  }
+
   return results.flatMap(x => x.labels).filter(x => (x.src != userDID));
 }
 
