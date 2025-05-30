@@ -6,6 +6,8 @@ const acceptedHostnames = [
   'deer.social',
 ];
 
+class URLError extends Error {}
+
 document.addEventListener("DOMContentLoaded", function() {
   initScanner();
 });
@@ -56,7 +58,7 @@ function submitSearch(event) {
   } else if (query.match(/^did\:\w+\:/)) {
     doScan = scanAccount(query);
   } else {
-    resultField.innerText = 'Enter a user handle or a post URL.';
+    resultField.innerText = '🤨 Enter a user handle or a post URL.';
     foundLabels.innerHTML = '';
     return;
   }
@@ -78,12 +80,42 @@ function submitSearch(event) {
         }
       })
       .catch((error) => {
-        resultField.innerText = error;
+        displayError(error);
       })
       .finally(() => {
-        this.search.disabled = false;      
+        this.search.disabled = false;
       });
   });
+}
+
+function displayError(error) {
+  if (error instanceof APIError) {
+    if (error.code == 400) {
+      if (error.json.error == 'AccountTakedown') {
+        resultField.innerText = '🚫 Account was taken down';
+        return;
+      } else if (error.json.error == 'InvalidRequest') {
+        if (error.json.message == 'Profile not found') {
+          resultField.innerText = '🚫 Account not found';
+          return;
+        } else if (error.json.message == 'Unable to resolve handle') {
+          resultField.innerText = '👾 Unable to resolve handle';
+          return;
+        }
+      } else if (error.json.error == 'AccountDeactivated') {
+        resultField.innerText = '😶‍🌫️ Account is deactivated';
+        return;
+      }
+    }
+
+    resultField.innerText = error;
+    return;
+  } else if (error instanceof URLError) {
+    resultField.innerText = `⚠️ ${error.message}`;
+    return;
+  }
+
+  resultField.innerText = `${error.constructor.name}: ${error.message}`;
 }
 
 async function scanHandle(handle) {
@@ -116,7 +148,7 @@ async function scanURL(string) {
     let url = new URL(string);
 
     if (url.protocol != 'https:') {
-      throw 'URL must start with https://';
+      throw new URLError('URL must start with https://');
     }
 
     if (!acceptedHostnames.includes(url.host)) {
@@ -140,7 +172,7 @@ async function scanURL(string) {
         let json = await appView.getRequest('com.atproto.identity.resolveHandle', { handle: match[1] });
         atURI = `at://${json.did}/app.bsky.feed.post/${match[2]}`;
       } else {
-        throw 'Invalid URL';
+        throw new URLError('Unknown URL');
       }
     }
   }
