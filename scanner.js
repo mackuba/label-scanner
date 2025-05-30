@@ -7,6 +7,8 @@ const acceptedHostnames = [
 ];
 
 class URLError extends Error {}
+class AccountError extends Error {}
+class PostTakenDownError extends Error {}
 
 document.addEventListener("DOMContentLoaded", function() {
   initScanner();
@@ -102,8 +104,14 @@ function displayError(error) {
           resultField.innerText = '👾 Unable to resolve handle';
           return;
         }
-      } else if (error.json.error == 'AccountDeactivated') {
+      } else if (error.json.error == 'AccountDeactivated' || error.json.error == 'RepoDeactivated') {
         resultField.innerText = '😶‍🌫️ Account is deactivated';
+        return;
+      } else if (error.json.error == 'RecordNotFound') {
+        resultField.innerText = '🚫 Post not found';
+        return;
+      } else if (error.json.error == 'RepoNotFound') {
+        resultField.innerText = '🚫 Account was deleted';
         return;
       }
     }
@@ -112,6 +120,12 @@ function displayError(error) {
     return;
   } else if (error instanceof URLError) {
     resultField.innerText = `⚠️ ${error.message}`;
+    return;
+  } else if (error instanceof PostTakenDownError) {
+    resultField.innerText = `🚫 Post was taken down on the AppView`;
+    return;
+  } else if (error instanceof AccountError) {
+    resultField.innerText = '🚫 Account not found';
     return;
   }
 
@@ -140,10 +154,14 @@ async function scanAccount(userDID) {
 }
 
 async function scanURL(string) {
-  let atURI, note;
+  let atURI, note, userDID, rkey;
 
-  if (string.match(/^at:\/\/did:[^/]+\/app\.bsky\.feed\.post\/[\w]+$/)) {
+  let match = string.match(/^at:\/\/(did:[^/]+)\/app\.bsky\.feed\.post\/([\w]+)$/);
+
+  if (match) {
     atURI = string;
+    userDID = match[1];
+    rkey = match[2];
   } else {
     let url = new URL(string);
 
@@ -167,17 +185,20 @@ async function scanURL(string) {
       let match = url.pathname.match(/^\/profile\/([^/]+)\/post\/([\w]+)\/?$/);
 
       if (match && match[1].startsWith('did:')) {
-        atURI = `at://${match[1]}/app.bsky.feed.post/${match[2]}`;
+        userDID = match[1];
+        rkey = match[2];
       } else if (match) {
         let json = await appView.getRequest('com.atproto.identity.resolveHandle', { handle: match[1] });
-        atURI = `at://${json.did}/app.bsky.feed.post/${match[2]}`;
+        userDID = json.did;
+        rkey = match[2];
       } else {
         throw new URLError('Unknown URL');
       }
+
+      atURI = `at://${userDID}/app.bsky.feed.post/${rkey}`;
     }
   }
 
-  let userDID = atURI.split('/')[2];
   let batches = [];
 
   for (let i = 0; i < labellers.length; i += batchSize) {
@@ -188,11 +209,53 @@ async function scanURL(string) {
   let results = await Promise.all(batches);
 
   if (results.every(x => !x)) {
-    throw '🚫 Post not found.';
+    // post not found, look it up on the origin PDS
+
+    let post = await loadPostFromPDS(userDID, rkey);
+
+    // post found, so it was taken down on the AppView
+
+    throw new PostTakenDownError();
   }
 
   let labels = results.flatMap(x => x.labels).filter(x => (x.src != userDID));
   return { labels, note };
+}
+
+async function loadPostFromPDS(did, rkey) {
+  let didDocument = await fetchDidDocument(did);
+
+  if (didDocument.message?.startsWith("DID not registered:")) {
+    throw new AccountError("Account not found");
+  }
+
+  let pds = didDocument.service?.find(x => x.id == "#atproto_pds")?.serviceEndpoint;
+
+  if (!pds) {
+    throw new AccountError("Invalid DID document");
+  }
+
+  let pdsSky = new Minisky(pds);
+  let repo = await pdsSky.getRequest('com.atproto.repo.describeRepo', { repo: did });
+
+  return await pdsSky.getRequest('com.atproto.repo.getRecord', {
+    repo: did,
+    collection: 'app.bsky.feed.post',
+    rkey: rkey
+  });
+}
+
+async function fetchDidDocument(did) {
+  if (did.startsWith('did:plc:')) {
+    let response = await fetch(`https://plc.directory/${did}`);
+    return await response.json();
+  } else if (did.startsWith('did:web:')) {
+    let hostname = did.split(':')[2];
+    let response = await fetch(`https://${hostname}/.well-known/did.json`);
+    return await response.json();
+  } else {
+    throw new AccountError("DID not found");
+  }
 }
 
 async function checkProfileWithLabellers(handle, batch) {
