@@ -318,19 +318,66 @@ function showLabels(labels) {
     resultField.innerHTML = `<i class="tags fa-solid fa-tags"></i> ${labels.length} labels found:`;
   }
 
-  let host = window.webClientHost ?? 'bsky.app';
+  let groupedLabels = groupLabelsByLabeller(labels);
+
+  for (let [labellerDid, labels] of Object.entries(groupedLabels)) {
+    let box = buildLabelGroup(labellerDid, labels);
+    foundLabels.appendChild(box);
+  }
+}
+
+function groupLabelsByLabeller(labels) {
+  let groups = {};
 
   for (let label of labels) {
-    let labeller = labellersMap[label.src];
-
-    let p = document.createElement('p');
-    p.innerText = `“${label.val}” from `;
-
-    let a = document.createElement('a');
-    a.innerText = labeller.name || labeller.handle;
-    a.href = `https://${host}/profile/${labeller.handle}`;
-    p.append(a);
-
-    foundLabels.appendChild(p);
+    groups[label.src] ??= [];
+    groups[label.src].push(label);
   }
+
+  return groups;
+}
+
+function buildLabelGroup(labellerDid, labels) {
+  let host = window.webClientHost ?? 'bsky.app';
+  let labeller = labellersMap[labellerDid];
+
+  let section = document.createElement('section');
+  section.className = 'label-group';
+
+  let header = document.createElement('h2');
+  let link = document.createElement('a');
+  link.innerText = labeller.name || labeller.handle;
+  link.href = `https://${host}/profile/${labeller.did}`;
+  header.append("From ", link, ":");
+  section.appendChild(header);
+
+  let list = document.createElement('ul');
+  list.className = 'labels';
+
+  for (let label of labels) {
+    let data = labeller.definitions[label.val];
+
+    let item = document.createElement('li');
+    let nameLabel = document.createElement('h3');
+    nameLabel.className = 'name';
+    nameLabel.innerText = data?.name || label.val;
+
+    if (nameLabel.innerText.trim().match(/^(\p{Emoji}|\p{Nonspacing_Mark})+$/u)) {
+      nameLabel.append(' (', label.val, ')');
+    }
+
+    item.append(nameLabel);
+
+    if (data?.description) {
+      let desc = document.createElement('p');
+      desc.className = 'description';
+      desc.innerText = data.description;
+      item.append(desc);
+    }
+
+    list.append(item);
+  }
+
+  section.appendChild(list);
+  return section;
 }

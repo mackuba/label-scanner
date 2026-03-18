@@ -1,5 +1,6 @@
 body {
   padding-top: 50px;
+  overflow-y: scroll;
   text-align: center;
   font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   text-rendering: optimizeLegibility;
@@ -16,7 +17,7 @@ h1 i {
 }
 
 #search {
-  margin-bottom: 30px;
+  margin-bottom: 40px;
 }
 
 #search input[type="text"] {
@@ -44,7 +45,61 @@ h1 i {
 }
 
 #found_labels {
-  margin-top: 30px;
+  margin: 30px auto 40px;
+  width: 600px;
+  text-align: left;
+}
+
+.label-group {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.label-group h2 {
+  font-size: 11pt;
+  font-weight: 500;
+  margin: 0;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e8e8e8;
+  background: #fafafa;
+}
+
+.label-group h2 a {
+  color: #2020d0;
+  text-decoration: none;
+}
+
+.label-group h2 a:hover {
+  text-decoration: underline;
+}
+
+.label-group ul.labels {
+  list-style: none;
+  margin: 0;
+  padding: 4px 14px 8px;
+}
+
+.label-group ul.labels li {
+  padding: 10px 0;
+}
+
+.label-group ul.labels li + li {
+  border-top: 1px solid #e8e8e8;
+}
+
+.label-group h3.name {
+  margin: 0;
+  font-size: 11pt;
+  font-weight: 600;
+}
+
+.label-group p.description {
+  margin: 4px 0 0;
+  color: #555;
+  line-height: 1.4;
+  font-size: 11pt;
 }
 
 #note {
