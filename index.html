@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'none';
-    script-src 'self' https://cdn.jsdelivr.net/gh/mackuba/ https://mackuba.eu 'sha256-kEJiee440PRqtvc6NymKR7Vr2BIpmTKrAtNiZLUZLEw=';
+    script-src 'self' https://cdn.jsdelivr.net/gh/mackuba/ https://mackuba.eu 'sha256-OOJd6JK5P75iMW63whEcsFaDx5SmvYtAmPMSZ0QUbGs=';
     style-src 'self';
     img-src 'self' https://mackuba.eu;
     font-src 'self';
@@ -47,14 +47,16 @@
   <script src="scanner.js"></script>
 
   <script>
-    let _paq = window._paq = window._paq || [];
-    _paq.push(['setExcludedQueryParams', ['fbclid']]);
-    _paq.push(['setTrackerUrl', 'https://mackuba.eu/stat/matomo.php']);
-    _paq.push(['setRequestMethod', 'POST']);
-    _paq.push(['setSiteId', '7']);
-    _paq.push(['disableCookies']);
-    _paq.push(['disableAlwaysUseSendBeacon']);
-    _paq.push(['trackPageView']);
+    if (location.protocol === 'https') {
+      let _paq = window._paq = window._paq || [];
+      _paq.push(['setExcludedQueryParams', ['fbclid']]);
+      _paq.push(['setTrackerUrl', 'https://mackuba.eu/stat/matomo.php']);
+      _paq.push(['setRequestMethod', 'POST']);
+      _paq.push(['setSiteId', '7']);
+      _paq.push(['disableCookies']);
+      _paq.push(['disableAlwaysUseSendBeacon']);
+      _paq.push(['trackPageView']);
+    }
   </script>
 
   <script src="https://mackuba.eu/stat/matomo.js"></script>
