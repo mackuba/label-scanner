@@ -42,7 +42,7 @@ async function loadLabellers() {
   return json.labellers;
 }
 
-function submitSearch(event) {
+async function submitSearch(event) {
   event.preventDefault();
   let query = this.query.value;
 
@@ -71,23 +71,21 @@ function submitSearch(event) {
   noteField.style.display = 'none';
   foundLabels.innerHTML = '';
 
-  labellersPromise.then(() => {
-    doScan
-      .then((data) => {
-        showLabels(data.labels);
+  await labellersPromise;
 
-        if (data.note) {
-          noteField.innerText = data.note;
-          noteField.style.display = 'block';
-        }
-      })
-      .catch((error) => {
-        displayError(error);
-      })
-      .finally(() => {
-        this.search.disabled = false;
-      });
-  });
+  try {
+    let data = await doScan;
+    showLabels(data.labels);
+
+    if (data.note) {
+      noteField.innerText = data.note;
+      noteField.style.display = 'block';
+    }
+  } catch (error) {
+    displayError(error);    
+  } finally {
+    this.search.disabled = false;    
+  }
 }
 
 function displayError(error) {
