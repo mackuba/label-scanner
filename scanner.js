@@ -82,6 +82,15 @@ async function submitSearch(event) {
 
   try {
     let data = await doScan;
+
+    let matchedlabellers = Array.from(new Set(data.labels.map(x => x.src)));
+    let labellersWithoutInfo = matchedlabellers.filter(x => !labellersMap[x].definitions);
+
+    if (labellersWithoutInfo.length > 0) {
+      let res = await appView.getRequest('app.bsky.labeler.getServices', { dids: labellersWithoutInfo, detailed: true });
+      assignLabellerInfo(res.views);
+    }
+
     showLabels(data.labels);
 
     if (data.note) {
@@ -92,6 +101,25 @@ async function submitSearch(event) {
     displayError(error);
   } finally {
     this.search.disabled = false;
+  }
+}
+
+function assignLabellerInfo(labellers) {
+  for (let labeller of labellers) {
+    let did = labeller.creator.did;
+    let labelDefinitions = {};
+
+    for (let label of labeller.policies?.labelValueDefinitions ?? []) {
+      let allLocales = label.locales ?? [];
+      let locale = allLocales.find(l => l.lang == 'en') || allLocales[0];
+
+      labelDefinitions[label.identifier] = {
+        name: locale?.name,
+        description: locale?.description
+      };
+    }
+
+    labellersMap[did].definitions = labelDefinitions;
   }
 }
 
