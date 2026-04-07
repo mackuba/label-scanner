@@ -366,6 +366,11 @@ function buildLabelGroup(labellerDid, labels) {
       nameLabel.append(' (', label.val, ')');
     }
 
+    let createdAt = document.createElement('time');
+    createdAt.setAttribute('datetime', label.cts);
+    createdAt.innerText = new Date(label.cts).toISOString().split('T')[0];
+    nameLabel.append(createdAt);
+
     item.append(nameLabel);
 
     if (data?.description) {
