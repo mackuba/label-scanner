@@ -29,7 +29,7 @@ function initScanner() {
     for (let labeller of list) {
       map[labeller.did] = labeller;
     }
-    
+
     window.labellersList = list;
     window.labellersMap = map;
   });
@@ -89,9 +89,9 @@ async function submitSearch(event) {
       noteField.style.display = 'block';
     }
   } catch (error) {
-    displayError(error);    
+    displayError(error);
   } finally {
-    this.search.disabled = false;    
+    this.search.disabled = false;
   }
 }
 
