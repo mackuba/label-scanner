@@ -24,7 +24,14 @@ function initScanner() {
 
   window.labellersPromise = loadLabellers();
   labellersPromise.then(list => {
-    window.labellers = list;
+    let map = {};
+
+    for (let labeller of list) {
+      map[labeller.did] = labeller;
+    }
+    
+    window.labellersList = list;
+    window.labellersMap = map;
   });
 
   let form = document.getElementById('search');
@@ -140,8 +147,8 @@ async function scanHandle(handle) {
 async function scanAccount(userDID) {
   let batches = [];
 
-  for (let i = 0; i < labellers.length; i += batchSize) {
-    let slice = labellers.slice(i, i + batchSize);
+  for (let i = 0; i < labellersList.length; i += batchSize) {
+    let slice = labellersList.slice(i, i + batchSize);
     batches.push(checkProfileWithLabellers(userDID, slice));
   }
 
@@ -199,8 +206,8 @@ async function scanURL(string) {
 
   let batches = [];
 
-  for (let i = 0; i < labellers.length; i += batchSize) {
-    let slice = labellers.slice(i, i + batchSize);
+  for (let i = 0; i < labellersList.length; i += batchSize) {
+    let slice = labellersList.slice(i, i + batchSize);
     batches.push(checkAtURIWithLabellers(atURI, slice));
   }
 
@@ -257,15 +264,15 @@ async function fetchDidDocument(did) {
 }
 
 async function checkProfileWithLabellers(handle, batch) {
-  let labellersList = batch.map(x => x.did).join(',');
-  let headers = { 'atproto-accept-labelers': labellersList };
+  let labellerDIDs = batch.map(x => x.did).join(',');
+  let headers = { 'atproto-accept-labelers': labellerDIDs };
 
   return appView.getRequest('app.bsky.actor.getProfile', { actor: handle }, { headers });
 }
 
 async function checkAtURIWithLabellers(uri, batch) {
-  let labellersList = batch.map(x => x.did).join(',');
-  let headers = { 'atproto-accept-labelers': labellersList };
+  let labellerDIDs = batch.map(x => x.did).join(',');
+  let headers = { 'atproto-accept-labelers': labellerDIDs };
 
   let result = await appView.getRequest('app.bsky.feed.getPosts', { uris: uri }, { headers });
   return result.posts[0];
@@ -286,7 +293,7 @@ function showLabels(labels) {
   let host = window.webClientHost ?? 'bsky.app';
 
   for (let label of labels) {
-    let labeller = labellers.find(x => (x.did == label.src));
+    let labeller = labellersMap[label.src];
 
     let p = document.createElement('p');
     p.innerText = `“${label.val}” from `;
