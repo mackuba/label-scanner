@@ -10,6 +10,8 @@ const acceptedHostnames = [
   'witchsky.app',
 ];
 
+const appviewHost = 'api.bsky.app';
+
 class URLError extends Error {}
 class AccountError extends Error {}
 class PostTakenDownError extends Error {}
@@ -24,7 +26,7 @@ function initScanner() {
   window.foundLabels = document.getElementById('found_labels');
 
   window.blue = new Minisky('blue.mackuba.eu');
-  window.appView = new Minisky('api.bsky.app');
+  window.appView = new Minisky(appviewHost);
 
   window.labellersPromise = loadLabellers();
   labellersPromise.then(list => {
@@ -131,7 +133,7 @@ function displayError(error) {
   if (error instanceof APIError) {
     if (error.code == 400) {
       if (error.json.error == 'AccountTakedown') {
-        resultField.innerText = '🚫 Account was taken down';
+        resultField.innerText = `🚫 Account was taken down on ${appviewHost}`;
         return;
       } else if (error.json.error == 'InvalidRequest') {
         if (error.json.message == 'Profile not found') {
