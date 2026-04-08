@@ -347,6 +347,10 @@ function groupLabelsByLabeller(labels) {
   return records.toSorted((a, b) => b[2] - a[2]);
 }
 
+function isEmoji(txt) {
+  return txt.trim().match(/^(\p{Emoji}|\p{Nonspacing_Mark})+$/u);
+}
+
 function buildLabelGroup(labellerDid, labels) {
   let host = window.webClientHost ?? 'bsky.app';
   let labeller = labellersMap[labellerDid];
@@ -364,6 +368,16 @@ function buildLabelGroup(labellerDid, labels) {
   let list = document.createElement('ul');
   list.className = 'labels';
 
+  labels.sort((a, b) => {
+    let aName = labeller.definitions[a.val]?.name;
+    if (!aName || isEmoji(aName)) { aName = a.val }
+
+    let bName = labeller.definitions[b.val]?.name;
+    if (!bName || isEmoji(bName)) { bName = b.val }
+
+    return aName.localeCompare(bName);
+  });
+
   for (let label of labels) {
     let data = labeller.definitions[label.val];
 
@@ -372,7 +386,7 @@ function buildLabelGroup(labellerDid, labels) {
     nameLabel.className = 'name';
     nameLabel.innerText = data?.name || label.val;
 
-    if (nameLabel.innerText.trim().match(/^(\p{Emoji}|\p{Nonspacing_Mark})+$/u)) {
+    if (isEmoji(nameLabel.innerText)) {
       nameLabel.append(' (', label.val, ')');
     }
 
