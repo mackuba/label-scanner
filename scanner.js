@@ -318,9 +318,9 @@ function showLabels(labels) {
     resultField.innerHTML = `<i class="tags fa-solid fa-tags"></i> ${labels.length} labels found:`;
   }
 
-  let groupedLabels = groupLabelsByLabeller(labels);
+  let labelGroups = groupLabelsByLabeller(labels);
 
-  for (let [labellerDid, labels] of Object.entries(groupedLabels)) {
+  for (let [labellerDid, labels, time] of labelGroups) {
     let box = buildLabelGroup(labellerDid, labels);
     foundLabels.appendChild(box);
   }
@@ -334,7 +334,17 @@ function groupLabelsByLabeller(labels) {
     groups[label.src].push(label);
   }
 
-  return groups;
+  let records = Object.entries(groups).map(([key, labels]) => {
+    let newestTimestamp = 0;
+
+    for (let label of labels) {
+      newestTimestamp = Math.max(newestTimestamp, Date.parse(label.cts));
+    }
+
+    return [key, labels, newestTimestamp];
+  });
+
+  return records.toSorted((a, b) => b[2] - a[2]);
 }
 
 function buildLabelGroup(labellerDid, labels) {
