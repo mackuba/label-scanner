@@ -21,7 +21,6 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function initScanner() {
-  window.navigationEnabled = ('navigation' in window);
   window.resultField = document.getElementById('result');
   window.noteField = document.getElementById('note');
   window.foundLabels = document.getElementById('found_labels');
@@ -41,6 +40,8 @@ function initScanner() {
     window.labellersMap = map;
   });
 
+  window.addEventListener('popstate', handlePopState);
+
   let form = document.getElementById('search');
 
   form.addEventListener('submit', submitSearch);
@@ -48,47 +49,26 @@ function initScanner() {
     setTimeout(() => { this.select() }, 10);
   });
 
-  form.query.focus();
-
-  if (navigationEnabled) {
-    navigation.addEventListener('navigate', handleNavigation);
-  }
-
   let initialQuery = getQueryFromURL(location.href);
   if (initialQuery) {
     form.query.value = initialQuery;
     runSearch(initialQuery, form);
+  } else {
+    form.query.focus();
   }
 }
 
-function handleNavigation(event) {
-  if (!event.canIntercept || event.hashChange || event.downloadRequest || navigationEvent.formData) {
-    return;
+function handlePopState(event) {
+  let form = document.getElementById('search');
+  let query = event.state?.query?.trim() ?? '';
+
+  form.query.value = query;
+
+  if (query) {
+    runSearch(query, form);
+  } else {
+    clearResults();
   }
-
-  let destination = new URL(event.destination.url);
-  let current = new URL(location.href);
-
-  if (destination.origin != current.origin || destination.pathname != current.pathname) {
-    return;
-  }
-
-  event.intercept({
-    focusReset: 'manual',
-
-    handler() {
-      let form = document.getElementById('search');
-      let query = getQueryFromURL(destination.href);
-
-      form.query.value = query;
-
-      if (query) {
-        runSearch(query, form);
-      } else {
-        clearResults();
-      }
-    },
-  });
 }
 
 function getQueryFromURL(urlString) {
@@ -119,11 +99,11 @@ function submitSearch(event) {
   let newURL = new URL(location.href);
   newURL.searchParams.set('q', query);
 
-  if (navigationEnabled && newURL.href !== location.href) {
-    navigation.navigate(newURL.href);
-  } else {
-    runSearch(query, this);
+  if (newURL.href !== location.href) {
+    history.pushState({ query }, '', newURL);
   }
+
+  runSearch(query, this);
 }
 
 async function runSearch(query, form) {
