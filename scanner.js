@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function initScanner() {
+  window.navigationEnabled = ('navigation' in window);
   window.resultField = document.getElementById('result');
   window.noteField = document.getElementById('note');
   window.foundLabels = document.getElementById('found_labels');
@@ -48,6 +49,58 @@ function initScanner() {
   });
 
   form.query.focus();
+
+  if (navigationEnabled) {
+    navigation.addEventListener('navigate', handleNavigation);
+  }
+
+  let initialQuery = getQueryFromURL(location.href);
+  if (initialQuery) {
+    form.query.value = initialQuery;
+    runSearch(initialQuery, form);
+  }
+}
+
+function handleNavigation(event) {
+  if (!event.canIntercept || event.hashChange || event.downloadRequest || navigationEvent.formData) {
+    return;
+  }
+
+  let destination = new URL(event.destination.url);
+  let current = new URL(location.href);
+
+  if (destination.origin != current.origin || destination.pathname != current.pathname) {
+    return;
+  }
+
+  event.intercept({
+    focusReset: 'manual',
+
+    handler() {
+      let form = document.getElementById('search');
+      let query = getQueryFromURL(destination.href);
+
+      form.query.value = query;
+
+      if (query) {
+        runSearch(query, form);
+      } else {
+        clearResults();
+      }
+    },
+  });
+}
+
+function getQueryFromURL(urlString) {
+  let url = new URL(urlString);
+  return url.searchParams.get('q')?.trim() ?? '';
+}
+
+function clearResults() {
+  resultField.innerText = '';
+  noteField.innerText = '';
+  noteField.style.display = 'none';
+  foundLabels.innerHTML = '';
 }
 
 async function loadLabellers() {
@@ -55,14 +108,25 @@ async function loadLabellers() {
   return json.labellers;
 }
 
-async function submitSearch(event) {
+function submitSearch(event) {
   event.preventDefault();
-  let query = this.query.value;
+  let query = this.query.value.trim();
 
-  if (query.trim().length == 0) {
+  if (query.length == 0) {
     return;
   }
 
+  let newURL = new URL(location.href);
+  newURL.searchParams.set('q', query);
+
+  if (navigationEnabled && newURL.href !== location.href) {
+    navigation.navigate(newURL.href);
+  } else {
+    runSearch(query, this);
+  }
+}
+
+async function runSearch(query, form) {
   let doScan;
 
   if (query.includes('://')) {
@@ -78,8 +142,8 @@ async function submitSearch(event) {
     return;
   }
 
-  this.query.blur();
-  this.search.disabled = true;
+  form.query.blur();
+  form.search.disabled = true;
   resultField.innerHTML = 'Scanning labels... <i class="loader fa-solid fa-spinner fa-spin fa-sm"></i>';
   noteField.style.display = 'none';
   foundLabels.innerHTML = '';
@@ -106,7 +170,7 @@ async function submitSearch(event) {
   } catch (error) {
     displayError(error);
   } finally {
-    this.search.disabled = false;
+    form.search.disabled = false;
   }
 }
 
