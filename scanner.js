@@ -128,8 +128,6 @@ async function runSearch(query, form) {
   noteField.style.display = 'none';
   foundLabels.innerHTML = '';
 
-  await labellersPromise;
-
   try {
     let data = await doScan;
 
@@ -225,6 +223,8 @@ async function scanHandle(handle) {
 async function scanAccount(userDID) {
   let batches = [];
 
+  await labellersPromise;
+
   for (let i = 0; i < labellersList.length; i += batchSize) {
     let slice = labellersList.slice(i, i + batchSize);
     batches.push(checkProfileWithLabellers(userDID, slice));
@@ -283,6 +283,8 @@ async function scanURL(string) {
   }
 
   let batches = [];
+
+  await labellersPromise;
 
   for (let i = 0; i < labellersList.length; i += batchSize) {
     let slice = labellersList.slice(i, i + batchSize);
