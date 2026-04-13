@@ -21,6 +21,11 @@ h1 i {
   margin-right: 5px;
 }
 
+h1 a {
+  color: light-dark(#000, #fff);
+  text-decoration: none;
+}
+
 #search {
   margin-bottom: 40px;
 }
