@@ -410,6 +410,10 @@ function buildLabelGroup(labellerDid, labels) {
   let section = document.createElement('section');
   section.className = 'label-group';
 
+  if (labeller.handle.endsWith('.bsky.app')) {
+    section.classList.add('bluesky');
+  }
+
   let header = document.createElement('h2');
   let link = document.createElement('a');
   link.innerText = labeller.name || labeller.handle;

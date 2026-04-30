@@ -67,6 +67,11 @@ h1 a {
   overflow: hidden;
 }
 
+.label-group.bluesky {
+  border-color: #6b9cff;
+  box-shadow: #6b9cff 0px 0px 5px 1px;
+}
+
 .label-group h2 {
   font-size: 11pt;
   font-weight: 500;
@@ -142,4 +147,11 @@ h1 a {
 
 #github a:hover img {
   opacity: 0.6;
+}
+
+@media (prefers-color-scheme: dark) {
+  .label-group.bluesky {
+    border-color: #2754b0;
+    box-shadow: 0 0 6px 2px #3370cf;
+  }
 }
