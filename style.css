@@ -154,4 +154,8 @@ h1 a {
     border-color: #2754b0;
     box-shadow: 0 0 6px 2px #3370cf;
   }
+
+  #github {
+    filter: invert();
+  }
 }
