@@ -4,9 +4,8 @@ const acceptedHostnames = [
   'bsky.app',
   'main.bsky.dev',
   'blacksky.community',
-  'catsky.social',
-  'deer.aylac.top',
   'deer.social',
+  'mu.social',
   'witchsky.app',
 ];
 
