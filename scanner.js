@@ -381,7 +381,10 @@ function groupLabelsByLabeller(labels) {
   let groups = {};
 
   for (let label of labels) {
-    groups[label.src] ??= [];
+    if (!groups[label.src]) {
+      groups[label.src] = [];
+    }
+
     groups[label.src].push(label);
   }
 
@@ -395,7 +398,7 @@ function groupLabelsByLabeller(labels) {
     return [key, labels, newestTimestamp];
   });
 
-  return records.toSorted((a, b) => b[2] - a[2]);
+  return records.sort((a, b) => b[2] - a[2]);
 }
 
 function isEmoji(txt) {
